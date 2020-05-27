@@ -1,24 +1,16 @@
 #include "computer.h"
-#include <QPainter>
 #include <QGraphicsTextItem>
-const int MARGIN = 50;
-const int DMARGIN = MARGIN*2;
-const int SIZE_INCREMENT = 10;
-
 struct Node
 {
     quint32 year = 0;
     qreal value = 0.0;
 };
 
-void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char * region, int column, const char * nameColumn)
+void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char * region, int column)
 {
-    if(!s || !file->open(QFile::ReadOnly))
+    if(!s || !file->open(QFile::ReadOnly) || !strlen(region) )
         return;
 
-    s->clear();
-        s->addText(nameColumn)->moveBy(w-DMARGIN,0);
-    s->addText(region)->moveBy(DMARGIN, 0);
     int width = w;
     int height = h;
 
@@ -30,7 +22,7 @@ void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char *
     while (!file->atEnd())
     {
         QString note(file->readLine());
-        if(note.contains(region))
+        if(note.contains(QString(region)))
         {
             QStringList fieldsOfNote = note.split(",");
             Node n;
@@ -104,5 +96,5 @@ void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char *
     }
 
     file->close();
-//    free(pdata);
+    free(pdata);
 }

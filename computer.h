@@ -3,8 +3,10 @@
 
 #include <QGraphicsScene>
 #include <QFile>
-
-void ComputeAndDraw(QGraphicsScene * scene, int w, int h, QFile * file, const char *region, int column, const char *nameColumn);
+const int MARGIN = 50;
+const int DMARGIN = MARGIN*2;
+const int SIZE_INCREMENT = 10;
+void ComputeAndDraw(QGraphicsScene * scene, int w, int h, QFile * file, const char *region, int column);
 
 
 

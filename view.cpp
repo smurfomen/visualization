@@ -3,19 +3,21 @@
 #include <QFileDialog>
 #include <QDebug>
 #include "computer.h"
-
+#include <QGraphicsTextItem>
 View::View(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::View)
 {
     ui->setupUi(this);
     ui->gview->setRenderHint(QPainter::Antialiasing);
-    ui->gview->setFixedSize(ui->gview->size());
     ui->gview->setScene(new QGraphicsScene(this));
     ui->gview->scene()->setSceneRect(ui->gview->rect());
-    ui->filePath->setText("russian_demography.csv");
-    ui->region->setText("Stavropol Krai");
+
+//    ui->filePath->setText("russian_demography.csv");
+//    ui->region->setText("Stavropol Krai");
+    this->setWindowTitle("ЛР 3. 2D визуализация.");
 }
+
 
 View::~View()
 {
@@ -31,10 +33,14 @@ void View::on_CalculateAndDraw_clicked()
 {
     QFile file(ui->filePath->text());
     int column = ui->column->value()-1;
-    const char * region = ui->region->text().toStdString().c_str();
+    QString region = ui->region->text();
     int w = ui->gview->width(), h = ui->gview->height();
-    const char * nameColumn = ui->table->rowCount() > 0 ? ui->table->horizontalHeaderItem(column)->text().toStdString().c_str() : "";
-    ComputeAndDraw(ui->gview->scene(), w, h, &file, region, column, nameColumn);
+    QString nameColumn = ui->table->rowCount() > 0 ? ui->table->horizontalHeaderItem(column)->text() : "";
+
+    ui->gview->scene()->clear();
+    ui->gview->scene()->addText(nameColumn)->moveBy(w-DMARGIN,0);
+    ui->gview->scene()->addText(region)->moveBy(DMARGIN, 0);
+    ComputeAndDraw(ui->gview->scene(), w, h, &file, region.toStdString().c_str(), column);
 }
 
 void View::on_loadData_clicked()
@@ -70,11 +76,11 @@ void View::on_loadData_clicked()
 
 void View::headerClicked(const QModelIndex &index)
 {
-    if(index.column() + 1 > 7)
+    if(index.column() >= 7)
         return;
-    if(index.column() + 1 < 3)
+    if(index.column() == 1)
         ui->region->setText(index.data().toString());
-    else
+    else if (index.column() > 1)
         ui->column->setValue(index.column()+1);
     on_CalculateAndDraw_clicked();
 

@@ -2,6 +2,7 @@
 #define VIEW_H
 
 #include <QMainWindow>
+#include <QResizeEvent>
 
 namespace Ui {
 class View;
@@ -26,6 +27,7 @@ private slots:
 
 private:
     Ui::View *ui;
+
 };
 
 #endif // VIEW_H

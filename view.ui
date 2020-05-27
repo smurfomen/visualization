@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1528</width>
+    <width>874</width>
     <height>694</height>
    </rect>
   </property>
@@ -27,6 +27,12 @@
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QTableWidget" name="table">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>500</height>
+        </size>
+       </property>
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
        </property>
@@ -44,14 +50,14 @@
       <widget class="QGraphicsView" name="gview">
        <property name="minimumSize">
         <size>
-         <width>782</width>
-         <height>536</height>
+         <width>700</width>
+         <height>500</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>782</width>
-         <height>536</height>
+         <width>700</width>
+         <height>500</height>
         </size>
        </property>
        <property name="verticalScrollBarPolicy">
@@ -61,10 +67,22 @@
         <enum>Qt::ScrollBarAlwaysOff</enum>
        </property>
        <property name="sizeAdjustPolicy">
-        <enum>QAbstractScrollArea::AdjustToContents</enum>
+        <enum>QAbstractScrollArea::AdjustIgnored</enum>
+       </property>
+       <property name="renderHints">
+        <set>QPainter::Antialiasing|QPainter::HighQualityAntialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
+       </property>
+       <property name="cacheMode">
+        <set>QGraphicsView::CacheNone</set>
        </property>
        <property name="transformationAnchor">
         <enum>QGraphicsView::AnchorViewCenter</enum>
+       </property>
+       <property name="resizeAnchor">
+        <enum>QGraphicsView::AnchorViewCenter</enum>
+       </property>
+       <property name="rubberBandSelectionMode">
+        <enum>Qt::ContainsItemShape</enum>
        </property>
       </widget>
      </widget>
@@ -243,8 +261,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1528</width>
-     <height>23</height>
+     <width>874</width>
+     <height>24</height>
     </rect>
    </property>
   </widget>

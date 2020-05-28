@@ -2,19 +2,17 @@
 #include "ui_view.h"
 #include <QFileDialog>
 #include <QDebug>
-#include "computer.h"
 #include <QGraphicsTextItem>
+#include <QPainter>
 View::View(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::View)
 {
     ui->setupUi(this);
-    ui->gview->setRenderHint(QPainter::Antialiasing);
-    ui->gview->setScene(new QGraphicsScene(this));
-    ui->gview->scene()->setSceneRect(ui->gview->rect());
+//    ui->gview->setRenderHint(QPainter::Antialiasing);
+//    ui->gview->setScene(new QGraphicsScene(this));
+//    ui->gview->scene()->setSceneRect(ui->gview->rect());
 
-//    ui->filePath->setText("russian_demography.csv");
-//    ui->region->setText("Stavropol Krai");
     this->setWindowTitle("ЛР 3. 2D визуализация.");
 }
 
@@ -34,13 +32,26 @@ void View::on_CalculateAndDraw_clicked()
     QFile file(ui->filePath->text());
     int column = ui->column->value()-1;
     QString region = ui->region->text();
-    int w = ui->gview->width(), h = ui->gview->height();
+    int w = ui->scene->width(), h = ui->scene->height();
     QString nameColumn = ui->table->rowCount() > 0 ? ui->table->horizontalHeaderItem(column)->text() : "";
 
-    ui->gview->scene()->clear();
-    ui->gview->scene()->addText(nameColumn)->moveBy(w-DMARGIN,0);
-    ui->gview->scene()->addText(region)->moveBy(DMARGIN, 0);
-    ComputeAndDraw(ui->gview->scene(), w, h, &file, region.toStdString().c_str(), column);
+//    ui->gview->scene()->clear();
+//    ui->gview->scene()->addText(nameColumn)->moveBy(w-DMARGIN,0);
+//    ui->gview->scene()->addText(region)->moveBy(DMARGIN, 0);
+
+    std::vector<Graph> graphs;
+    std::vector<Point2DValue> axelsValue;
+    Filter f;
+    f.file = &file;
+
+    std::string regstdstr(qPrintable(region));
+    f.mask = regstdstr.c_str();
+    f.maskColumn = 1;
+    f.xAxelColumn = 0;
+    f.yAxelColumn = column;
+    calculateGraphs(ui->scene->graphs, ui->scene->axelsValues, w, h, f);
+    ui->scene->repaint();
+
 }
 
 void View::on_loadData_clicked()

@@ -2,42 +2,57 @@
 #include <QGraphicsTextItem>
 struct Node
 {
-    quint32 year = 0;
-    qreal value = 0.0;
+    quint32 xAxelValue = 0;
+    qreal yAxelValue = 0.0;
 };
 
-void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char * region, int column)
+Graph makeGraph(qreal x1, qreal y1, qreal x2, qreal y2)
 {
-    if(!s || !file->open(QFile::ReadOnly) || !strlen(region) )
+    return Graph{Point2D{x1,y1}, Point2D{x2,y2}};
+}
+
+Point2DValue makePoint2DValue(qreal x, qreal y, qreal value, qreal rotation = 0.0){
+    Point2DValue p;
+    p.point = Point2D {x,y}; p.value = value; p.rotation = rotation;
+    return p;
+}
+
+void calculateGraphs(std::vector<Graph> & graphs, std::vector<Point2DValue> & axelsValues, int w, int h, Filter f)
+{
+    QFile * file = f.file;
+    if(file == nullptr || !file->open(QFile::ReadOnly) || !strlen(f.mask) )
         return;
 
     int width = w;
     int height = h;
+
+
 
     // разбираем файл
     Node * pdata = (Node*) malloc(SIZE_INCREMENT * sizeof (Node));
     size_t size = SIZE_INCREMENT;
     size_t iter = 0;
     qreal max = 0.0, min = 0.0;
-    while (!file->atEnd())
+    while (!f.file->atEnd())
     {
-        QString note(file->readLine());
-        if(note.contains(QString(region)))
+        QString note(f.file->readLine());
+        if(note.contains(QString(f.mask)))
         {
             QStringList fieldsOfNote = note.split(",");
             Node n;
-            n.year = fieldsOfNote.at(0).toInt();
-            n.value = fieldsOfNote.at(column).toDouble();
-            if(n.value == 0.0)
+            n.xAxelValue = fieldsOfNote.at(f.xAxelColumn).toInt();
+            n.yAxelValue = fieldsOfNote.at(f.yAxelColumn).toDouble();
+
+            if(n.yAxelValue == 0.0)
                 continue;
 
             if(iter == 0)
-                max = min = n.value;
+                max = min = n.yAxelValue;
 
-            if(n.value > max)
-                max = n.value;
-            else if (n.value < min)
-                min = n.value;
+            if(n.yAxelValue > max)
+                max = n.yAxelValue;
+            else if (n.yAxelValue < min)
+                min = n.yAxelValue;
 
             if(iter == size)
             {
@@ -52,10 +67,11 @@ void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char *
     size = iter;
 
     // ось Y
-    s->addLine(MARGIN,MARGIN,MARGIN,height-MARGIN);
+    graphs.push_back(makeGraph(MARGIN,MARGIN,MARGIN,height-MARGIN));
+
 
     // ось X, в зависимости от знака минимального элемента рисуем либо посередине сцены либо снизу с отступом
-    s->addLine(MARGIN,height - (min < 0 ? height/2 : MARGIN),width-MARGIN,height - (min < 0 ? height/2 : MARGIN));
+    graphs.push_back(makeGraph(MARGIN,height - (min < 0 ? height/2 : MARGIN),width-MARGIN,height - (min < 0 ? height/2 : MARGIN)));
 
     // сдвижка каждого следующего элемента по оси X
     qreal widthOffset = (width-DMARGIN)/size;
@@ -68,9 +84,9 @@ void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char *
     for (int i = 0; i < 4; i++) {
         // рисуем засечку и пишем рядом с ней ее значение
         qreal y = height-MARGIN-abs(heightRate*(horizontalMidLines[i]-min));
-        s->addLine(MARGIN-5, y, MARGIN+5, y);
-        QGraphicsTextItem * txtV = s->addText(QString::number(horizontalMidLines[i]));
-        txtV->moveBy(0, y);
+
+        graphs.push_back(makeGraph(MARGIN-5, y, MARGIN+5, y));
+        axelsValues.push_back(makePoint2DValue(0,y, horizontalMidLines[i]));
     }
 
     // рисуем последовательно сам график, перебирая накопленные элементы
@@ -80,21 +96,20 @@ void ComputeAndDraw(QGraphicsScene * s, int w, int h, QFile * file, const char *
         {
             // сама кривая
             qreal x1 = widthOffset*i;
-            qreal y1 = height-abs(heightRate*(pdata[i].value-min));
+            qreal y1 = height-abs(heightRate*(pdata[i].yAxelValue-min));
             qreal x2 = widthOffset*(i+1);
-            qreal y2 = height-abs(heightRate*(pdata[i+1].value-min));
-            s->addLine(MARGIN+x1,y1-MARGIN,MARGIN+x2, y2-MARGIN);
+            qreal y2 = height-abs(heightRate*(pdata[i+1].yAxelValue-min));
+            graphs.push_back(makeGraph(MARGIN+x1,y1-MARGIN,MARGIN+x2, y2-MARGIN));
         }
 
         // рисуем засечку на оси X
-        s->addLine(MARGIN + widthOffset*i ,height - (min < 0 ? height/2 : MARGIN) - 5, MARGIN + widthOffset*i ,height - (min < 0 ? height/2 : MARGIN) + 5);
+        graphs.push_back(makeGraph(MARGIN + widthOffset*i ,height - (min < 0 ? height/2 : MARGIN) - 5, MARGIN + widthOffset*i ,height - (min < 0 ? height/2 : MARGIN) + 5));
 
         // добавляем текстовое значение года под засечкой на оси X, поворачиваем его под углом 75
-        QGraphicsTextItem * txtH = s->addText(QString::number(pdata[i].year));
-        txtH->setRotation(75);
-        txtH->moveBy(MARGIN + widthOffset*i + widthOffset/2 , height - (min < 0 ? height/2 : MARGIN) + 5);
+        axelsValues.push_back(makePoint2DValue(MARGIN + widthOffset*i + widthOffset/2 , height - (min < 0 ? height/2 : MARGIN) + 5, pdata[i].xAxelValue, 75.00));
     }
 
     file->close();
     free(pdata);
+    return;
 }

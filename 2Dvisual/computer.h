@@ -6,7 +6,33 @@
 const int MARGIN = 50;
 const int DMARGIN = MARGIN*2;
 const int SIZE_INCREMENT = 10;
-void ComputeAndDraw(QGraphicsScene * scene, int w, int h, QFile * file, const char *region, int column);
+
+struct Point2D
+{
+    qreal x;
+    qreal y;
+};
+
+struct Graph{
+    Point2D a;
+    Point2D b;
+};
+
+struct Point2DValue{
+    Point2D point;
+    qreal value;
+    qreal rotation = 0.0;
+};
+
+struct Filter{
+    QFile * file;
+    const char * mask;
+    int maskColumn;
+    int yAxelColumn;
+    int xAxelColumn;
+};
+
+void calculateGraphs(std::vector<Graph> &graphs, std::vector<Point2DValue> &axelsValues, int w, int h, Filter f);
 
 
 

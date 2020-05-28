@@ -61,8 +61,8 @@ Matrix normalize(const Matrix &nodes)
 
     for(int i = 0; i < nodes.size(); i++)
     {
-        float x = nodes.at(i).x();
-        float y = nodes.at(i).y();
+        float x = 10 + nodes.at(i).x();
+        float y = 10 + nodes.at(i).y();
         float z = bottomPeackNormal + (nodes.at(i).z() - min) * normalRange/Range;
         QVector3D n(x,y,z);
         n = Multiply(n,Mscale());

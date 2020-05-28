@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QResizeEvent>
-
+#include "computer.h"
 namespace Ui {
 class View;
 }
@@ -26,6 +26,9 @@ private slots:
     void headerClicked(const QModelIndex& index);
 
 private:
+
+    void drawGraps(const std::vector<Graph>& graphs);
+    void drawAxelsValues(const std::vector<Point2DValue> &axelsValues);
     Ui::View *ui;
 
 };

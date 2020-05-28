@@ -27,11 +27,13 @@ CONFIG += c++11
 SOURCES += \
         computer.cpp \
         main.cpp \
-        view.cpp
+        view.cpp \
+    scene.cpp
 
 HEADERS += \
         computer.h \
-        view.h
+        view.h \
+    scene.h
 
 FORMS += \
         view.ui

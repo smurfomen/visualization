@@ -40,10 +40,10 @@ void View::on_CalculateAndDraw_clicked()
     f.file = &file;
 
     std::string regstdstr(qPrintable(region));
-    f.mask = regstdstr.c_str();
-    f.maskColumn = 1;
-    f.xAxelColumn = 0;
-    f.yAxelColumn = column;
+    f.mask = regstdstr.c_str(); // маска (в данном случае имя региона)
+    f.maskColumn = 1;           // колонка по которой сверять маску
+    f.xAxelColumn = 0;          // год
+    f.yAxelColumn = column;     // обсчитываемая колонка
 
     ui->scene->clearData();
     calculateGraphs(ui->scene->graphs, ui->scene->axelsValues, w, h, f);
@@ -65,7 +65,7 @@ void View::on_loadData_clicked()
             ui->table->horizontalHeader()->setVisible(true);
             ui->table->horizontalHeader()->adjustSize();
 
-            connect(ui->table, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(headerClicked(const QModelIndex &)));
+            connect(ui->table, SIGNAL(clicked(const QModelIndex &)), this, SLOT(headerClicked(const QModelIndex &)));
 
 
             QTableWidget * t = ui->table;
@@ -89,7 +89,10 @@ void View::headerClicked(const QModelIndex &index)
     if(index.column() == 1)
         ui->region->setText(index.data().toString());
     else if (index.column() > 1)
+    {
         ui->column->setValue(index.column()+1);
+        ui->region->setText(ui->table->item(index.row(), 1)->text());
+    }
     on_CalculateAndDraw_clicked();
 
 }

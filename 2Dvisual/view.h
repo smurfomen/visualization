@@ -13,7 +13,6 @@ class View : public QMainWindow
     Q_OBJECT
 
 public:
-    virtual void resizeEvent(QResizeEvent * e);
     explicit View(QWidget *parent = nullptr);
     ~View();
 
@@ -27,6 +26,7 @@ private slots:
     void headerClicked(const QModelIndex& index);
 
 private:
+    virtual void resizeEvent(QResizeEvent * e);
 
     void drawGraps(const std::vector<Graph>& graphs);
     void drawAxelsValues(const std::vector<Point2DValue> &axelsValues);

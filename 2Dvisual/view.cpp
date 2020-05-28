@@ -4,15 +4,16 @@
 #include <QDebug>
 #include <QGraphicsTextItem>
 #include <QPainter>
+void View::resizeEvent(QResizeEvent *e)
+{
+    on_CalculateAndDraw_clicked();
+}
+
 View::View(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::View)
 {
     ui->setupUi(this);
-//    ui->gview->setRenderHint(QPainter::Antialiasing);
-//    ui->gview->setScene(new QGraphicsScene(this));
-//    ui->gview->scene()->setSceneRect(ui->gview->rect());
-
     this->setWindowTitle("ЛР 3. 2D визуализация.");
 }
 
@@ -27,20 +28,14 @@ void View::on_openFile_clicked()
     ui->filePath->setText(QFileDialog::getOpenFileName(this, tr("Выбрать датасет"), "/home/vladimir", tr("Датасеты(*.csv)")));
 }
 
+
 void View::on_CalculateAndDraw_clicked()
 {
     QFile file(ui->filePath->text());
     int column = ui->column->value()-1;
     QString region = ui->region->text();
     int w = ui->scene->width(), h = ui->scene->height();
-    QString nameColumn = ui->table->rowCount() > 0 ? ui->table->horizontalHeaderItem(column)->text() : "";
 
-//    ui->gview->scene()->clear();
-//    ui->gview->scene()->addText(nameColumn)->moveBy(w-DMARGIN,0);
-//    ui->gview->scene()->addText(region)->moveBy(DMARGIN, 0);
-
-    std::vector<Graph> graphs;
-    std::vector<Point2DValue> axelsValue;
     Filter f;
     f.file = &file;
 
@@ -49,6 +44,8 @@ void View::on_CalculateAndDraw_clicked()
     f.maskColumn = 1;
     f.xAxelColumn = 0;
     f.yAxelColumn = column;
+
+    ui->scene->clearData();
     calculateGraphs(ui->scene->graphs, ui->scene->axelsValues, w, h, f);
     ui->scene->repaint();
 

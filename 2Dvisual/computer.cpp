@@ -1,16 +1,19 @@
 #include "computer.h"
 #include <QGraphicsTextItem>
+
 struct Node
 {
     quint32 xAxelValue = 0;
     qreal yAxelValue = 0.0;
 };
 
+// для упрощения создания графов
 Graph makeGraph(qreal x1, qreal y1, qreal x2, qreal y2)
 {
     return Graph{Point2D{x1,y1}, Point2D{x2,y2}};
 }
 
+// для упрощения создания пометок
 Point2DValue makePoint2DValue(qreal x, qreal y, qreal value, qreal rotation = 0.0){
     Point2DValue p;
     p.point = Point2D {x,y}; p.value = value; p.rotation = rotation;

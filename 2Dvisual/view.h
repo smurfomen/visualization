@@ -13,6 +13,7 @@ class View : public QMainWindow
     Q_OBJECT
 
 public:
+    virtual void resizeEvent(QResizeEvent * e);
     explicit View(QWidget *parent = nullptr);
     ~View();
 

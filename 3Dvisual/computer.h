@@ -1,17 +1,6 @@
 #ifndef COMPUTER_H
 #define COMPUTER_H
 #include <cmath>
-extern int columns;
-extern int rows;
-
-extern float angleX;
-extern float angleY;
-extern float angleZ;
-
-extern float rotateX;
-extern float rotateY;
-extern float rotateZ;
-
 
 extern int bottomPeackNormal;
 extern int upperPeackNormal;
@@ -23,14 +12,40 @@ extern float SPACE;
 #include <QVector3D>
 #include <QGraphicsScene>
 
-typedef QVector<QVector3D> Matrix;
 #include <vector>
 #include <QMatrix4x4>
+struct AngleXYZ{
+    float x;
+    float y;
+    float z;
+};
 
-void Compute(QGraphicsScene * s, const int width, const int height, const Matrix & nodes);
-Matrix normalize(const Matrix &nodes);
+struct AngleParams{
+    AngleXYZ angle;
+    AngleXYZ rotation;
+};
 
-QVector<QVector3D> rotate(const QVector<QVector3D> &nodes);
+struct Range {
+    double top;
+    double bottom;
+};
+
+struct CalculateParams {
+    int w;
+    int h;
+    int rows;
+    int columns;
+    QVector<QVector3D> nodes;
+    AngleParams angleParams;
+    Range baseRange;
+    Range normalRange;
+};
+
+void Compute(std::vector<std::vector<QPointF>> & dots, CalculateParams params);
+
+QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, const CalculateParams &p);
+
+QVector<QVector3D> rotate(const QVector<QVector3D> &nodes, const AngleParams & aParams);
 
 QVector3D Multiply(QVector3D p, std::vector<std::vector<float> > m);
 

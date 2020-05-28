@@ -1,69 +1,41 @@
 #include "computer.h"
 #include <QVector2D>
 
-void Compute(QGraphicsScene *s, const int width, const int height, const Matrix & nodes)
+void Compute(std::vector<std::vector<QPointF> > &dots, CalculateParams params)
 {
-    if(!s) return;
-
-    s->clear();
 
     // нормализуем точки и разворачиваем их согласно углам
-    QVector<QVector3D> mtx = rotate(normalize(nodes));
+    QVector<QVector3D> mtx = rotate(normalize(params.nodes, params), params.angleParams);
 
     // преобразуем точки из 3D пространства в проекции на полоскость сцены
-    std::vector<std::vector<QPointF>> dots;
     for(int i = 0; i < mtx.size()-1; i++)
     {
-        qreal xDot = mtx.at(i).z() == 0.0f ? ((qreal)width) * mtx.at(i).x() : ((qreal)width) * mtx.at(i).x()/    mtx.at(i).z();
-        qreal yDot = mtx.at(i).z() == 0.0f ? ((qreal)height) * mtx.at(i).y(): ((qreal)height) * mtx.at(i).y()/   mtx.at(i).z();
+        qreal xDot = mtx.at(i).z() == 0.0f ? ((qreal)params.w) * mtx.at(i).x() : ((qreal)params.w) * mtx.at(i).x()/    mtx.at(i).z();
+        qreal yDot = mtx.at(i).z() == 0.0f ? ((qreal)params.h) * mtx.at(i).y(): ((qreal)params.h) * mtx.at(i).y()/   mtx.at(i).z();
 
         if(i/30 == dots.size())
-        {
             dots.push_back(std::vector<QPointF>());
-        }
         dots.at(i/30).push_back(QPointF(xDot,yDot));
-    }
-
-    // отображаем точки и связываем их линиями
-    for(int r = 0; r < dots.size(); r++)
-    {
-        for(int c = 0; c < dots.at(r).size(); c++)
-        {
-            QPointF dot = dots.at(r).at(c);
-            s->addRect(QRectF(dot,QPointF(dot.rx()+1, dot.ry()+1)));
-            // линия в соседа справа
-            if(c+1 < dots.at(r).size())
-                s->addLine(QLineF(dot, dots.at(r).at(c+1)));
-
-            // линия в соседа вниз
-            if(r+1 < dots.size() && c != 29)
-                s->addLine(QLineF(dot, dots.at(r+1).at(c)));
-        }
     }
 }
 
 
 
 
-
-
-
-
-
-
-Matrix normalize(const Matrix &nodes)
+// нормализовать значения по Z
+QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, const CalculateParams &p)
 {
-    Matrix normalNodes;
+    QVector<QVector3D> normalNodes;
 
-    int normalRange = upperPeackNormal - bottomPeackNormal;
+    float normalRange = p.normalRange.top - p.normalRange.bottom;
 
-    double Range = max - min;
+    float Range = p.baseRange.top - p.baseRange.bottom;
 
     for(int i = 0; i < nodes.size(); i++)
     {
         float x = 10 + nodes.at(i).x();
         float y = 10 + nodes.at(i).y();
-        float z = bottomPeackNormal + (nodes.at(i).z() - min) * normalRange/Range;
+        float z = p.normalRange.bottom + (nodes.at(i).z() - p.baseRange.bottom) * normalRange/Range;
         QVector3D n(x,y,z);
         n = Multiply(n,Mscale());
 
@@ -73,48 +45,52 @@ Matrix normalize(const Matrix &nodes)
     return normalNodes;
 }
 
-QVector<QVector3D> rotate(const QVector<QVector3D> &nodes)
+
+// развернуть согласно выставленным углам разворота
+QVector<QVector3D> rotate(const QVector<QVector3D> &nodes, const AngleParams & aParams)
 {
     QVector<QVector3D> reangleNodes;
     for(int i = 0; i < nodes.size(); i++)
     {
         QVector3D node = nodes.at(i);
+        AngleXYZ angle = aParams.angle;
         // разворот по X
-        if(angleX != 0.0)
+        if(angle.x != 0.0)
         {
-            node.setY(node.y()*cosf(angleX) - node.z()*sinf(angleX));
-            node.setZ(node.y()*sinf(angleX) + node.z()*cosf(angleX));
+            node.setY(node.y()*cosf(angle.x) - node.z()*sinf(angle.x));
+            node.setZ(node.y()*sinf(angle.x) + node.z()*cosf(angle.x));
         }
 
         // разворот по Y
-        if(angleY != 0.0f)
+        if(angle.y!= 0.0f)
         {
-            node.setX(node.x()*cosf(angleY) + node.z()*sinf(angleY));
-            node.setZ((node.x()*-1.0f)*sinf(angleY) + node.z()*cosf(angleY));
+            node.setX(node.x()*cosf(angle.y) + node.z()*sinf(angle.y));
+            node.setZ((node.x()*-1.0f)*sinf(angle.y) + node.z()*cosf(angle.y));
         }
 
         // разворот по Z
-        if(angleZ != 0.0f)
+        if(angle.z != 0.0f)
         {
-            node.setX(node.x()*cosf(angleZ) - node.y()*sinf(angleZ));
-            node.setY(node.x()*sinf(angleZ) + node.y()*cosf(angleZ));
+            node.setX(node.x()*cosf(angle.z) - node.y()*sinf(angle.z));
+            node.setY(node.x()*sinf(angle.z) + node.y()*cosf(angle.z));
         }
 
 
         reangleNodes.append(node);
     }
 
+    AngleXYZ rotate = aParams.rotation;
     // разворачиваем обсчитанные точки согласно выставленным углам
-    QVector<QVector3D> rotateNodes;
+    QVector<QVector3D> rotatedNodes;
     for(int i = 0; i < reangleNodes.size(); i++)
     {
-        QVector3D m = Multiply(reangleNodes.at(i), Mx(rotateX));
-        m = Multiply(m,My(rotateY));
-        m = Multiply(m, Mz(rotateZ));
-        rotateNodes.append(m);
+        QVector3D m = Multiply(reangleNodes.at(i), Mx(rotate.x));
+        m = Multiply(m,My(rotate.y));
+        m = Multiply(m, Mz(rotate.z));
+        rotatedNodes.append(m);
     }
 
-    return rotateNodes;
+    return rotatedNodes;
 
 }
 
@@ -181,3 +157,4 @@ QVector3D Multiply(QVector3D p, std::vector<std::vector<float>> m)
     point.setZ(p.x() * m[2][0] + p.y() * m[2][1] + p.z() * m[2][2]);
     return point;
 }
+

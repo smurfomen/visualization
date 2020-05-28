@@ -19,6 +19,13 @@ public:
     void drawGraps(QPainter * p, const std::vector<Graph> &graphs);
 
     void drawAxelsValues(QPainter * p, const std::vector<Point2DValue> &axelsValues);
+
+    void clearData(){
+        graphs.clear();
+        axelsValues.clear();
+    }
 };
+
+
 
 #endif // SCENE_H

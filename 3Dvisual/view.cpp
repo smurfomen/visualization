@@ -5,46 +5,32 @@
 #include "computer.h"
 #include <QVector2D>
 #include <QVector3D>
+#include "scene.h"
 
-
-int columns = 0;
-int rows = 0;
-
-float angleX = 67.0f;
-float angleY = 25.0f;
-float angleZ = 89.0f;
-
-float rotateX = 67.0f;
-float rotateY = 25.0f;
-float rotateZ = 89.0f;
-
-int bottomPeackNormal = 0;
-int upperPeackNormal = 1;
-double min = 0.0;
-double max = 0.0;
 float SPACE = 10.0f;
+
+CalculateParams cparams;
+
 View::View(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::View)
 {
     ui->setupUi(this);
-    ui->gview->setFixedSize(ui->gview->size());
-    ui->gview->setScene(new QGraphicsScene(this));
-    ui->gview->setSceneRect(ui->gview->rect());
 
-    rotateX = ui->rotateX->value();
-    rotateY = ui->rotateY->value();
-    rotateZ = ui->rotateZ->value();
+    cparams.angleParams.rotation.x = ui->rotateX->value();
+    cparams.angleParams.rotation.y = ui->rotateY->value();
+    cparams.angleParams.rotation.z = ui->rotateZ->value();
 
-    angleX = ui->angleX->value();
-    angleY = ui->angleY->value();
-    angleZ = ui->angleZ->value();
+    cparams.angleParams.angle.x = ui->angleX->value();
+    cparams.angleParams.angle.y = ui->angleY->value();
+    cparams.angleParams.angle.z = ui->angleZ->value();
 
-    upperPeackNormal = ui->upperRange->value();
-    bottomPeackNormal = ui->bottomRange->value();
+    cparams.normalRange.top = ui->upperRange->value();
+    cparams.normalRange.bottom = ui->bottomRange->value();
 
     SPACE = ui->space->value();
 
+    this->setWindowTitle("ЛР 4. 3D визуализация.");
 }
 
 View::~View()
@@ -54,75 +40,80 @@ View::~View()
 
 void View::on_open_clicked()
 {
-    QString path = /*QFileDialog::getOpenFileName(this, tr("Выбрать датасет"), "/home/vladimir", tr("Датасеты(*.csv)"));*/ "students_exams.csv";
-    ui->filePath->setText(path);
+    QString path ;
+    if(ui->filePath->text().isEmpty())
+    {
+        path = QFileDialog::getOpenFileName(this, tr("Выбрать датасет"), tr("Датасеты(*.csv)"));
+        ui->filePath->setText(path);
+    }
+    else
+        path = ui->filePath->text();
+
     QFile file(path);
     if(file.open(QFile::ReadOnly))
     {
-        QVector<QVector3D> nodes;
-
-        columns  = 0;
-        rows = 0;
+        cparams.nodes.clear();
+        cparams.baseRange.bottom = 0.0;
+        cparams.baseRange.top = 0.0;
+        cparams.columns  = 0;
+        cparams.rows = 0;
         while(!file.atEnd())
         {
             QStringList fieldsOfRow = QString(file.readLine()).split(",");
-            if(rows == 0)
-                min = max = fieldsOfRow.at(0).toDouble();
+            if(cparams.rows == 0)
+                cparams.baseRange.bottom = cparams.baseRange.top = fieldsOfRow.at(0).toDouble();
 
-            columns = 0;
-            for(; columns < fieldsOfRow.size(); columns++)
+            cparams.columns = 0;
+            for(; cparams.columns < fieldsOfRow.size(); cparams.columns++)
             {
-                double val = fieldsOfRow.at(columns).toDouble();
-                if(min > val)
-                    min = val;
-                else if(max < val)
-                    max = val;
-                nodes.append(QVector3D(columns,rows,val));
+                double val = fieldsOfRow.at(cparams.columns).toDouble();
+                if(cparams.baseRange.bottom > val)
+                    cparams.baseRange.bottom = val;
+                else if(cparams.baseRange.top < val)
+                    cparams.baseRange.top = val;
+                cparams.nodes.append(QVector3D(cparams.columns,cparams.rows,val));
             }
-            rows++;
+            cparams.rows++;
         }
 
         file.close();
-        Compute(ui->gview->scene(),ui->gview->width(),ui->gview->height(), nodes);
+
+        cparams.w = ui->scene->width();
+        cparams.h = ui->scene->height();
+        ui->scene->clearData();
+        Compute(ui->scene->dots, cparams);
+        ui->scene->repaint();
     }
 }
 
 
-
-
-
-
-
-
-
-
 void View::on_bottomRange_valueChanged(int arg1)
 {
-    bottomPeackNormal = arg1;
+    cparams.normalRange.bottom = arg1;
     on_open_clicked();
 }
 
 void View::on_upperRange_valueChanged(int arg1)
 {
-    upperPeackNormal = arg1;
+    cparams.normalRange.top = arg1;
     on_open_clicked();
 }
 
 void View::on_angleX_valueChanged(double arg1)
 {
-    angleX = (float)arg1;
+    cparams.angleParams.angle.x = (float)arg1;
     on_open_clicked();
 }
 
 void View::on_angleY_valueChanged(double arg1)
 {
-    angleY = (float)arg1;
+    cparams.angleParams.angle.y = (float)arg1;
     on_open_clicked();
 }
 
 void View::on_angleZ_valueChanged(double arg1)
 {
-    angleZ = (float)arg1;
+    cparams.angleParams.angle.z = (float)arg1;
     on_open_clicked();
 }
 
@@ -135,18 +126,23 @@ void View::on_space_valueChanged(int arg1)
 
 void View::on_rotateX_valueChanged(double value)
 {
-    rotateX = (float)value;
+    cparams.angleParams.rotation.x = (float)value;
     on_open_clicked();
 }
 
 void View::on_rotateY_valueChanged(double value)
 {
-    rotateY = (float)value;
+    cparams.angleParams.rotation.y = (float)value;
     on_open_clicked();
 }
 
 void View::on_rotateZ_valueChanged(double value)
 {
-    rotateZ = (float)value;
+    cparams.angleParams.rotation.z = (float)value;
+    on_open_clicked();
+}
+
+void View::resizeEvent(QResizeEvent *e)
+{
     on_open_clicked();
 }

@@ -26,11 +26,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         view.cpp \
-    computer.cpp
+    computer.cpp \
+    scene.cpp
 
 HEADERS += \
         view.h \
-    computer.h
+    computer.h \
+    scene.h
 
 FORMS += \
         view.ui

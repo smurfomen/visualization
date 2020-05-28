@@ -10,8 +10,6 @@ void Scene::paintEvent(QPaintEvent *e)
     p.setPen(QPen(Qt::black));
     drawGraps(&p,graphs);
     drawAxelsValues(&p, axelsValues);
-    graphs.clear();
-    axelsValues.clear();
 }
 
 void Scene::Scene::drawGraps(QPainter *p, const std::vector<Graph> &graphs)

@@ -37,6 +37,7 @@ private slots:
 
 private:
     Ui::View *ui;
+    virtual void resizeEvent(QResizeEvent * e);
 };
 
 #endif // VIEW_H

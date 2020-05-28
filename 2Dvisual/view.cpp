@@ -15,6 +15,7 @@ View::View(QWidget *parent) :
 {
     ui->setupUi(this);
     this->setWindowTitle("ЛР 3. 2D визуализация.");
+    connect(ui->splitter, SIGNAL(splitterMoved(int,int)), this, SLOT(splitterMoved(int,int)));
 }
 
 
@@ -95,4 +96,9 @@ void View::headerClicked(const QModelIndex &index)
     }
     on_CalculateAndDraw_clicked();
 
+}
+
+void View::splitterMoved(int, int)
+{
+    resizeEvent(NULL);
 }

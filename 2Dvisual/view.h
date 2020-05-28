@@ -25,6 +25,8 @@ private slots:
 
     void headerClicked(const QModelIndex& index);
 
+    void splitterMoved(int, int);
+
 private:
     virtual void resizeEvent(QResizeEvent * e);
 

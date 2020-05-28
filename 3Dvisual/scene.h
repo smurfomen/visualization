@@ -14,10 +14,7 @@ public:
 
     std::vector<std::vector<QPointF>> dots;
 
-    void clearData()
-    {
-        dots.clear();
-    }
+    void clearData();
 };
 
 #endif // SCENE_H

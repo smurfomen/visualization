@@ -7,6 +7,7 @@ void Compute(std::vector<std::vector<QPointF> > &dots, CalculateParams params)
     // нормализуем точки и разворачиваем их согласно углам
     QVector<QVector3D> mtx = rotate(normalize(params.nodes, params), params.angleParams);
 
+
     // преобразуем точки из 3D пространства в проекции на полоскость сцены
     for(int i = 0; i < mtx.size()-1; i++)
     {
@@ -38,7 +39,7 @@ QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, const CalculatePar
         float z = p.normalRange.bottom + (nodes.at(i).z() - p.baseRange.bottom) * normalRange/Range;
         QVector3D n(x,y,z);
         n = Multiply(n,Mscale());
-
+ n= Multiply(n,Mscale());
         normalNodes.append(n);
     }
 
@@ -87,8 +88,12 @@ QVector<QVector3D> rotate(const QVector<QVector3D> &nodes, const AngleParams & a
         QVector3D m = Multiply(reangleNodes.at(i), Mx(rotate.x));
         m = Multiply(m,My(rotate.y));
         m = Multiply(m, Mz(rotate.z));
+
+
+
         rotatedNodes.append(m);
     }
+
 
     return rotatedNodes;
 
@@ -136,16 +141,15 @@ std::vector<std::vector<float>> Mscale()
     return m;
 }
 
-QMatrix4x4 Mplane()
+std::vector<std::vector<float>> Mplane()
 {
-    float values[] ={
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0,0,0,1
+    std::vector<std::vector<float>> m ={
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0,0,0,1}
 
     };
-    QMatrix4x4 m(values);
     return m;
 }
 

@@ -9,7 +9,7 @@ void Scene::paintEvent(QPaintEvent *  e)
 {
     Q_UNUSED(e)
     QPainter p (this);
-
+    p.setRenderHint(QPainter::Antialiasing);
     // отображаем точки и связываем их линиями
     for(int r = 0; r < dots.size(); r++)
     {
@@ -26,4 +26,9 @@ void Scene::paintEvent(QPaintEvent *  e)
                 p.drawLine(QLineF(dot, dots.at(r+1).at(c)));
         }
     }
+}
+
+void Scene::clearData()
+{
+    dots.clear();
 }

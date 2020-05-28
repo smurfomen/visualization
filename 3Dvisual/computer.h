@@ -57,6 +57,6 @@ std::vector<std::vector<float> > Mz(float a);
 
 std::vector<std::vector<float> > Mscale();
 
-QMatrix4x4 Mplane();
+std::vector<std::vector<float> > Mplane();
 
 #endif // COMPUTER_H

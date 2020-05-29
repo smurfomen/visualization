@@ -1,6 +1,7 @@
 #include "computer.h"
 #include <QGraphicsTextItem>
 
+// узел, фактически представляет собой значения конкретной точки
 struct Node
 {
     quint32 xAxelValue = 0;
@@ -29,44 +30,54 @@ void calculateGraphs(std::vector<Graph> & graphs, std::vector<Point2DValue> & ax
     int width = w;
     int height = h;
 
-
-
-    // разбираем файл
     Node * pdata = (Node*) malloc(SIZE_INCREMENT * sizeof (Node));
     size_t size = SIZE_INCREMENT;
     size_t iter = 0;
     qreal max = 0.0, min = 0.0;
+
+    // разбираем файл
     while (!f.file->atEnd())
     {
         QString note(f.file->readLine());
         if(note.contains(QString(f.mask)))
         {
             QStringList fieldsOfNote = note.split(",");
+            if(f.xAxelColumn >= fieldsOfNote.size() || f.yAxelColumn >= fieldsOfNote.size())
+                return;
+
+            // создаем ноду и кладем в нее значения из соответствующих столбцов
             Node n;
             n.xAxelValue = fieldsOfNote.at(f.xAxelColumn).toInt();
             n.yAxelValue = fieldsOfNote.at(f.yAxelColumn).toDouble();
 
+            // пропускаем если значение 0. В противном случае, при отсутствии данных в столбце значения (yAxelColumn), график будет с провисаниями
+            // а так он рисуется, пропуская нулевые значения. Как лучше - вопрос открытый
             if(n.yAxelValue == 0.0)
                 continue;
 
+            // в самом начале минимальный и максимальный элементы будут равны первому элементу
             if(iter == 0)
                 max = min = n.yAxelValue;
 
+            // обновляем минимум и максимум
             if(n.yAxelValue > max)
                 max = n.yAxelValue;
             else if (n.yAxelValue < min)
                 min = n.yAxelValue;
 
+            // если текущая позиция на которую будет происходить добавление равна размеру - увеличиваем размер и реаллоцируем всю память в другое место
             if(iter == size)
             {
                 size += SIZE_INCREMENT;
                 pdata = (Node*) realloc(pdata, sizeof(Node) * size);
             }
 
+            // так как iter увеличивается постинкрементом - по завершению цикла его значение будет равно количеству элементов, а не последнему индексу
             pdata[iter++] = n;
         }
     }
 
+    // размер равен количеству итераций.
     size = iter;
 
     // ось Y
@@ -83,16 +94,16 @@ void calculateGraphs(std::vector<Graph> & graphs, std::vector<Point2DValue> & ax
     qreal heightRate = abs((height-DMARGIN)/(max-min));
 
     // среднее по в разбежке максимального и менимального значений, можно установить больше
-    qreal horizontalMidLines [] = {min, min+(max-min)*0.33, min+(max-min)*0.66, max};
+    // этот массив нужен, чтобы отрисовать в равных пропорциях шкалу Y
+    qreal verticalMidValues [] = {min, min+(max-min)*0.33, min+(max-min)*0.66, max};
     for (int i = 0; i < 4; i++) {
-        // рисуем засечку и пишем рядом с ней ее значение
-        qreal y = height-MARGIN-abs(heightRate*(horizontalMidLines[i]-min));
+        qreal y = height-MARGIN-abs(heightRate*(verticalMidValues[i]-min));
 
         graphs.push_back(makeGraph(MARGIN-5, y, MARGIN+5, y));
-        axelsValues.push_back(makePoint2DValue(0,y, horizontalMidLines[i]));
+        axelsValues.push_back(makePoint2DValue(0,y, verticalMidValues[i]));
     }
 
-    // рисуем последовательно сам график, перебирая накопленные элементы
+    // наполняем графами массив, перебирая накопленные элементы
     for(size_t i = 0; i < size; i++)
     {
         if(i < size-1)
@@ -112,7 +123,7 @@ void calculateGraphs(std::vector<Graph> & graphs, std::vector<Point2DValue> & ax
         axelsValues.push_back(makePoint2DValue(MARGIN + widthOffset*i + widthOffset/2 , height - (min < 0 ? height/2 : MARGIN) + 5, pdata[i].xAxelValue, 75.00));
     }
 
+    // закрываем файл, освобождаем память
     file->close();
     free(pdata);
-    return;
 }

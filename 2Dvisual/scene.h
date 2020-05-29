@@ -20,10 +20,7 @@ public:
 
     void drawAxelsValues(QPainter * p, const std::vector<Point2DValue> &axelsValues);
 
-    void clearData(){
-        graphs.clear();
-        axelsValues.clear();
-    }
+    void clearData();
 };
 
 

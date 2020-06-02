@@ -27,8 +27,3 @@ void Scene::paintEvent(QPaintEvent *  e)
         }
     }
 }
-
-void Scene::clearData()
-{
-    dots.clear();
-}

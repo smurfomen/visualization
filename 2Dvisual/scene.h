@@ -12,13 +12,16 @@ public:
 
     virtual void paintEvent(QPaintEvent * e);
 
-    std::vector<Graph> graphs;
-    std::vector<Point2DValue> axelsValues;
+    void setChart(Chart c){
+        chart = c;
+        repaint();
+    }
 
+    Chart chart;
 
-    void drawGraps(QPainter * p, const std::vector<Graph> &graphs);
+    void drawGraps(QPainter * p);
 
-    void drawAxelsValues(QPainter * p, const std::vector<Point2DValue> &axelsValues);
+    void drawAxelsValues(QPainter * p);
 
     void clearData();
 };

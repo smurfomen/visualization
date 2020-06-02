@@ -9,7 +9,7 @@
 
 
 // параметры для калькуляции, подробнее в определении структуры
-CalculateParams cparams;
+Settings cparams;
 
 View::View(QWidget *parent) :
     QMainWindow(parent),
@@ -41,64 +41,19 @@ View::~View()
 
 void View::on_open_clicked()
 {
-    QString path ;
     if(ui->filePath->text().isEmpty())
     {
-        path = QFileDialog::getOpenFileName(this, tr("Выбрать датасет"), tr("Датасеты(*.csv)"));
+        QString path = QFileDialog::getOpenFileName(this, tr("Выбрать датасет"), tr("Датасеты(*.csv)"));
         ui->filePath->setText(path);
     }
     else
-        path = ui->filePath->text();
-
-    QFile file(path);
-    if(file.open(QFile::ReadOnly))
     {
-        // обнуляем старые параметры
-        cparams.nodes.clear();
-        cparams.baseRange.bottom = 0.0;
-        cparams.baseRange.top = 0.0;
-        cparams.columns  = 0;
-        cparams.rows = 0;
-
-        // читаем файл и заполняем первичный массив векторов данными
-        // в массиве nodes находятся 3D векторы(т.е пространственные коорднаты), x - колонка, y - строка, z - считанное значение на пересечении x,y
-        while(!file.atEnd())
-        {
-            QStringList fieldsOfRow = QString(file.readLine()).split(",");
-
-            // в самом начале фиксируем минимальный и максимальный предел на первом элементе
-            if(cparams.rows == 0)
-                cparams.baseRange.bottom = cparams.baseRange.top = fieldsOfRow.at(0).toDouble();
-
-            // обнуляем колонку, т.к. будем идти вдоль оси X по таблице
-            cparams.columns = 0;
-            for(; cparams.columns < fieldsOfRow.size(); cparams.columns++)
-            {
-                // берем значение на пересечении и сравниваем его с актуальными пределами, если что - обновляем
-                double val = fieldsOfRow.at(cparams.columns).toDouble();
-                if(cparams.baseRange.bottom > val)
-                    cparams.baseRange.bottom = val;
-                else if(cparams.baseRange.top < val)
-                    cparams.baseRange.top = val;
-
-                // создаем вектор и кладем в массив считанных векторов
-                cparams.nodes.append(QVector3D(cparams.columns,cparams.rows,val));
-            }
-            cparams.rows++;
-        }
-
-        file.close();
-
         // обновляем размеры сцены на случай если они изменились, это нужно для обсчета
         cparams.w = ui->scene->width();
         cparams.h = ui->scene->height();
+        cparams.filePath = ui->filePath->text();
 
-        // очищаем данные которые там были и кладем новые
-        ui->scene->clearData();
-        Compute(ui->scene->dots, cparams);
-
-        // перересовываем
-        ui->scene->repaint();
+        ui->scene->setChart(makeChartExecute(cparams));
     }
 }
 
@@ -151,13 +106,15 @@ void View::on_rotateZ_valueChanged(double value)
     on_open_clicked();
 }
 
-void View::resizeEvent(QResizeEvent *e)
-{
-    on_open_clicked();
-}
-
 void View::on_scale_valueChanged(double arg1)
 {
     cparams.scale = arg1;
     on_open_clicked();
 }
+
+void View::resizeEvent(QResizeEvent *e)
+{
+    on_open_clicked();
+}
+
+

@@ -1,14 +1,81 @@
 #include "computer.h"
 #include <QVector2D>
-
+#include <QFile>
+#include <iostream>
+#include <fstream>
+#include <iosfwd>
 // P.S: Артефакты по прежнему есть при разворотах, я думаю что это связанно с неверным приведением или умножением на 0 на каком-то из этапов преобразования
+#include <string>
+
+std::vector<QString> readline(std::ifstream * f){
+    std::vector<QString> lines;
+    std::string tmp;
+    getline(*f, tmp);
+    if(!tmp.length())
+        throw -1;
+    QString qtmp = QString::fromStdString(tmp);
+    QStringList list = qtmp.split(',');
+    for(auto str : list)
+    {
+        lines.push_back(str);
+    }
+    return lines;
+}
 
 // обсчитать графы
-void Compute(std::vector<std::vector<QPointF> > &dots, CalculateParams params)
+std::vector<std::vector<QPointF>> makeChartExecute(Settings params)
 {
+    std::vector<std::vector<QPointF>> dots;
+    Range baseRange;
+    int columns  = 0;
+    int rows = 0;
+    QVector<QVector3D> nodes;           // изначальный массив с векторами. По сути - это данные из датасета, у которых X и Y это колонка и строка соответственно, а Z - значение на их пересечении
+    std::ifstream file(params.filePath.toStdString().c_str());
+    if(!file.is_open()) return dots;
+
+    // обнуляем старые параметры
+    baseRange.bottom = 0.0;
+    baseRange.top = 0.0;
+
+    // читаем файл и заполняем первичный массив векторов данными
+    // в массиве nodes находятся 3D векторы(т.е пространственные коорднаты), x - колонка, y - строка, z - считанное значение на пересечении x,y
+    while(file.good())
+    {
+        try {
+            std::vector<QString> fieldsOfRow = readline(&file);
+
+            // в самом начале фиксируем минимальный и максимальный предел на первом элементе
+            if(rows == 0)
+                baseRange.bottom = baseRange.top = fieldsOfRow.at(0).toDouble();
+
+            // обнуляем колонку, т.к. будем идти вдоль оси X по таблице
+            columns = 0;
+            for(; columns < fieldsOfRow.size(); columns++)
+            {
+                // берем значение на пересечении и сравниваем его с актуальными пределами, если что - обновляем
+                double val = fieldsOfRow.at(columns).toDouble();
+                if(baseRange.bottom > val)
+                    baseRange.bottom = val;
+                else if(baseRange.top < val)
+                    baseRange.top = val;
+
+                // создаем вектор и кладем в массив считанных векторов
+                nodes.append(QVector3D(columns,rows,val));
+            }
+            rows++;
+        } catch (...) {
+            if(file.good())
+                return dots;
+        }
+
+    }
+
+    file.close();
+
+
 
     // нормализуем точки и разворачиваем их согласно углам
-    QVector<QVector3D> mtx = rotate(normalize(params.nodes, params), params.angleParams);
+    QVector<QVector3D> mtx = rotate(normalize(nodes, baseRange, params.normalRange), params.angleParams);
 
 
     // преобразуем точки из 3D пространства в проекции на полоскость сцены
@@ -22,27 +89,29 @@ void Compute(std::vector<std::vector<QPointF> > &dots, CalculateParams params)
         yDot *= params.scale;
 
         // если нужно добавить строчку - добавляем
-        if(i/params.rows == dots.size())
+        if(i/rows == dots.size())
             dots.push_back(std::vector<QPointF>());
 
         // продолжаем добавлять в актуальную строку вершины
-        dots.at(i/params.rows).push_back(QPointF(xDot,yDot));
+        dots.at(i/rows).push_back(QPointF(xDot,yDot));
     }
+
+    return dots;
 }
 
 
 
 
 // нормализовать значения по Z
-QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, const CalculateParams &p)
+QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, Range bRange, Range nRange)
 {
     QVector<QVector3D> normalNodes;
 
     // диапазон нормализации
-    float normalRange = p.normalRange.top - p.normalRange.bottom;
+    float normalRange = nRange.top - nRange.bottom;
 
     // диапазон разброса реальных значений по Z
-    float Range = p.baseRange.top - p.baseRange.bottom;
+    float Range = bRange.top - bRange.bottom;
 
 
     for(int i = 0; i < nodes.size(); i++)
@@ -51,7 +120,7 @@ QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, const CalculatePar
         float y = 5+nodes.at(i).y();
 
         // согласно формуле нормализуем координату Z
-        float z = p.normalRange.bottom + (nodes.at(i).z() - p.baseRange.bottom) * normalRange/Range;
+        float z = nRange.bottom + (nodes.at(i).z() - bRange.bottom) * normalRange/Range;
 
         QVector3D node(x,y,z);
         // умножаем вектор на матрицу масштабирования и равномерного распределения

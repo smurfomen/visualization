@@ -32,24 +32,17 @@ void View::on_openFile_clicked()
 
 void View::on_CalculateAndDraw_clicked()
 {
-    QFile file(ui->filePath->text());
-    int column = ui->column->value()-1;
-    QString region = ui->region->text();
-    int w = ui->scene->width(), h = ui->scene->height();
+    Settings f;
+    f.w = ui->scene->width();
+    f.h = ui->scene->height();
+    f.filePath = ui->filePath->text();
 
-    Filter f;
-    f.file = &file;
-
-    std::string regstdstr(qPrintable(region));
-    f.mask = regstdstr.c_str(); // маска (в данном случае имя региона)
+    f.mask =    ui->region->text(); // маска (в данном случае имя региона)
     f.maskColumn = 1;           // колонка по которой сверять маску
     f.xAxelColumn = 0;          // год
-    f.yAxelColumn = column;     // обсчитываемая колонка
+    f.yAxelColumn = ui->column->value()-1;;     // обсчитываемая колонка
 
-    ui->scene->clearData();
-    calculateGraphs(ui->scene->graphs, ui->scene->axelsValues, w, h, f);
-    ui->scene->repaint();
-
+    ui->scene->setChart(makeChartExecute(f));
 }
 
 void View::on_loadData_clicked()

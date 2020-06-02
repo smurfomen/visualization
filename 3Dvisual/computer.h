@@ -36,23 +36,21 @@ struct Range {
 };
 
 // параметры для калькуляции, инкапсулируют несколько подструктур
-struct CalculateParams {
+struct Settings {
+    QString filePath;
     int w;                              // ширина плоскости (ширина сцены)
     int h;                              // высота плоскости (высота сцены)
-    int rows;                           // количество строк в датасете
-    int columns;                        // количество колонок в датасете        rows * columns = количество вершин
-    QVector<QVector3D> nodes;           // изначальный массив с векторами. По сути - это данные из датасета, у которых X и Y это колонка и строка соответственно, а Z - значение на их пересечении
     AngleParams angleParams;            // параметры наклона
-    Range baseRange;                    // базовый диапазон (от min до max)
     Range normalRange;                  // нормирующий диапазон (задается на форме), нужен что бы нивелировать большой разброс между Z координатами
     double scale;
 };
 
+
 // обсчитать переданные параметры и положить обсчитанные вершины в массив dots (он передан по ссылке!!!)
-void Compute(std::vector<std::vector<QPointF>> & dots, CalculateParams params);
+std::vector<std::vector<QPointF>> makeChartExecute(Settings params);
 
 // нормализация
-QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, const CalculateParams &p);
+QVector<QVector3D> normalize(const QVector<QVector3D> &nodes, Range baseRange, Range normalRange);
 
 // вращение относительно углов
 QVector<QVector3D> rotate(const QVector<QVector3D> &nodes, const AngleParams & aParams);

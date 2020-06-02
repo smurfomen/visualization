@@ -15,11 +15,12 @@ public:
 
     virtual void paintEvent(QPaintEvent *e);
 
+    void setChart(std::vector<std::vector<QPointF>>d){
+        dots = d;
+        repaint();
+    }
     // матрица вершин. Нужно очищать прежде чем обсчитывать снова, чтобы не получить 2 датасета вместо 1
     std::vector<std::vector<QPointF>> dots;
-
-    // очистить матрицу
-    void clearData();
 };
 
 #endif // SCENE_H

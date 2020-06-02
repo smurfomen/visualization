@@ -22,18 +22,25 @@ struct Graph
 };
 
 // точка с значением и углом разворота - нужна что бы рисовать значения шкалы на графике
-struct Point2DValue
+struct Label
 {
     Point2D point;
     qreal value;
     qreal rotation = 0.0;
 };
 
+struct Chart {
+    std::vector<Graph> graphs;
+    std::vector<Label> labels;
+};
+
 // фильтрационные данные
-struct Filter
+struct Settings
 {
-    QFile * file;           // читаемый файл
-    const char * mask;      // маска, по которой будут фильтроваться записи
+    int w;
+    int h;
+    QString filePath;           // читаемый файл
+    QString mask;      // маска, по которой будут фильтроваться записи
     int maskColumn;         // колонка в которой искать маску
     quint16 yAxelColumn;    // колонка с данными по оси Y (значения)
     quint16 xAxelColumn;    // колонка с данными по оси X (года)
@@ -45,7 +52,7 @@ struct Filter
 ///\param w - ширина плоскости
 ///\param h - высота плоскости
 ///\param f - данные
-void calculateGraphs(std::vector<Graph> &graphs, std::vector<Point2DValue> &axelsValues, int w, int h, Filter f);
+Chart makeChartExecute(Settings f);
 
 
 

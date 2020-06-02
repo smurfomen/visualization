@@ -31,7 +31,7 @@ private:
     virtual void resizeEvent(QResizeEvent * e);
 
     void drawGraps(const std::vector<Graph>& graphs);
-    void drawAxelsValues(const std::vector<Point2DValue> &axelsValues);
+    void drawAxelsValues(const std::vector<Label> &axelsValues);
     Ui::View *ui;
 
 };
